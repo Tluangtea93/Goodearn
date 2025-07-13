@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizMaster - Telegram Quiz Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #8e44ad;
+            --secondary: #9b59b6;
+            --accent: #e74c3c;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --background: #1a1a2e;
+            --card-bg: #16213e;
+            --text: #ffffff;
+            --shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--background), #0f3460);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            border: 3px solid var(--light);
+        }
+        
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .username {
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .user-status {
+            font-size: 12px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .points-container {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 10px 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        
+        .points-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .points-value {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .game-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .question-number {
+            background: linear-gradient(135deg, var(--accent), var(--warning));
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .timer {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .timer.danger {
+            background: rgba(231, 76, 60, 0.3);
+            color: #ff9f9f;
+        }
+        
+        .question {
+            font-size: 22px;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            font-weight: 600;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        .option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary);
+        }
+        
+        .option.selected {
+            background: rgba(142, 68, 173, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .option.correct {
+            background: rgba(46, 204, 113, 0.3);
+            border-color: var(--success);
+        }
+        
+        .option.incorrect {
+            background: rgba(231, 76, 60, 0.3);
+            border-color: var(--accent);
+        }
+        
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 15px;
+            border-radius: 15px;
+            border: none;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .withdraw-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .conversion {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .conversion-rate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .withdraw-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-weight: 500;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        select, input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            color: var(--text);
+            font-size: 16px;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .withdraw-btn {
+            background: linear-gradient(135deg, var(--success), #27ae60);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .withdraw-btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+        }
+        
+        .ad-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        
+        .ad-label {
+            display: inline-block;
+            background: rgba(243, 156, 18, 0.2);
+            color: var(--warning);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .ad-content {
+            height: 250px;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ad-content::before {
+            content: 'ADVERTISEMENT';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            opacity: 0.7;
+        }
+        
+        .ad-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .ad-text {
+            font-size: 18px;
+            max-width: 80%;
+            opacity: 0.9;
+        }
+        
+        .skip-ad {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text);
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .skip-ad:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: var(--accent);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        @media (max-width: 480px) {
+            .question {
+                font-size: 18px;
+            }
+            
+            .btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .ad-content {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <div class="username">@quizmaster2023</div>
+                    <div class="user-status">
+                        <i class="fas fa-circle"></i>
+                        Online
+                    </div>
+                </div>
+            </div>
+            <div class="points-container">
+                <div class="points-label">POINTS</div>
+                <div class="points-value">
+                    <i class="fas fa-coins"></i>
+                    <span id="points">8,450</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="game-container">
+            <div class="question-header">
+                <div class="question-number">Question #15</div>
+                <div class="timer" id="timer">
+                    <i class="fas fa-clock"></i>
+                    <span>30s</span>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progress" style="width: 60%"></div>
+            </div>
+            
+            <div class="question">
+                Which planet is known as the "Red Planet" in our solar system?
+            </div>
+            
+            <div class="options">
+                <div class="option">Venus</div>
+                <div class="option">Mars</div>
+                <div class="option selected">Jupiter</div>
+                <div class="option">Saturn</div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary">
+                    <i class="fas fa-sync-alt"></i>
+                    Skip Question
+                </button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Answer
+                </button>
+            </div>
+        </div>
+        
+        <div class="withdraw-section">
+            <h2 class="section-title">
+                <i class="fas fa-rupee-sign"></i>
+                Withdraw Earnings
+            </h2>
+            
+            <div class="conversion">
+                <div>Points Conversion Rate</div>
+                <div class="conversion-rate">
+                    <span>1000 Points</span>
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>10 INR</span>
+                </div>
+                <div>Minimum withdrawal: 100 INR (10,000 Points)</div>
+            </div>
+            
+            <div class="withdraw-form">
+                <div class="form-group">
+                    <label for="withdraw-method">Withdrawal Method</label>
+                    <select id="withdraw-method">
+                        <option value="">Select Method</option>
+                        <option value="gpay">GPay</option>
+                        <option value="paytm">Paytm</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="upi-id">UPI ID</label>
+                    <input type="text" id="upi-id" placeholder="yourname@upi">
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Amount (INR)</label>
+                    <input type="number" id="amount" min="100" value="100" disabled>
+                    <small>Minimum withdrawal amount is ₹100 (10,000 Points)</small>
+                </div>
+                
+                <button class="withdraw-btn" disabled>
+                    Withdraw ₹100 (10,000 Points)
+                </button>
+            </div>
+        </div>
+        
+        <div class="ad-container">
+            <div class="ad-label">
+                <i class="fas fa-ad"></i> Advertisement
+            </div>
+            
+            <div class="ad-content">
+                <div class="ad-title">PREMIUM QUIZ MASTER</div>
+                <div class="ad-text">Upgrade to premium for an ad-free experience and double points!</div>
+            </div>
+            
+            <button class="skip-ad">
+                Skip Ad in 5s <i class="fas fa-forward"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i> Correct! +30 Points
+    </div>
+
+    <script>
+        // Simulate Telegram Mini App initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Points display
+            const pointsElement = document.getElementById('points');
+            let points = 8450;
+            
+            // Timer functionality
+            const timerElement = document.getElementById('timer');
+            const progressElement = document.getElementById('progress');
+            let timeLeft = 30;
+            
+            function updateTimer() {
+                timerElement.innerHTML = `<i class="fas fa-clock"></i><span>${timeLeft}s</span>`;
+                progressElement.style.width = `${(timeLeft / 30) * 100}%`;
+                
+                if (timeLeft <= 10) {
+                    timerElement.classList.add('danger');
+                } else {
+                    timerElement.classList.remove('danger');
+                }
+                
+                timeLeft--;
+                
+                if (timeLeft < 0) {
+                    clearInterval(timerInterval);
+                    showNotification('Time is up! -5 Points', true);
+                    points -= 5;
+                    pointsElement.textContent = points.toLocaleString();
+                }
+            }
+            
+            let timerInterval = setInterval(updateTimer, 1000);
+            
+            // Option selection
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Submit answer
+            document.querySelector('.btn-primary').addEventListener('click', function() {
+                clearInterval(timerInterval);
+                const selectedOption = document.querySelector('.option.selected');
+                
+                if (!selectedOption) {
+                    showNotification('Please select an answer!', true);
+                    return;
+                }
+                
+                // Simulate correct/incorrect answer
+                const isCorrect = selectedOption.textContent === 'Mars';
+                
+                if (isCorrect) {
+                    points += 30;
+                    selectedOption.classList.add('correct');
+                    showNotification('Correct! +30 Points');
+                } else {
+                    points -= 5;
+                    selectedOption.classList.add('incorrect');
+                    showNotification('Incorrect! -5 Points', true);
+                    
+                    // Highlight correct answer
+                    options.forEach(opt => {
+                        if (opt.textContent === 'Mars') {
+                            opt.classList.add('correct');
+                        }
+                    });
+                }
+                
+                pointsElement.textContent = points.toLocaleString();
+                
+                // Disable options after answer
+                options.forEach(opt => {
+                    opt.classList.add('disabled');
+                });
+            });
+            
+            // Withdrawal button state
+            const withdrawBtn = document.querySelector('.withdraw-btn');
+            const upiInput = document.getElementById('upi-id');
+            const methodSelect = document.getElementById('withdraw-method');
+            
+            function updateWithdrawButton() {
+                const methodSelected = methodSelect.value !== '';
+                const upiValid = upiInput.value.includes('@');
+                
+                if (points >= 10000 && methodSelected && upiValid) {
+                    withdrawBtn.disabled = false;
+                } else {
+                    withdrawBtn.disabled = true;
+                }
+            }
+            
+            methodSelect.addEventListener('change', updateWithdrawButton);
+            upiInput.addEventListener('input', updateWithdrawButton);
+            
+            // Withdrawal functionality
+            withdrawBtn.addEventListener('click', function() {
+                showNotification('Withdrawal request sent successfully!');
+                setTimeout(() => {
+                    showNotification('₹100 will be transferred within 24 hours');
+                }, 2000);
+            });
+            
+            // Notification system
+            const notification = document.getElementById('notification');
+            
+            function showNotification(message, isError = false) {
+                notification.innerHTML = isError 
+                    ? `<i class="fas fa-exclamation-circle"></i> ${message}`
+                    : `<i class="fas fa-check-circle"></i> ${message}`;
+                
+                notification.className = 'notification show';
+                if (isError) notification.classList.add('error');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    notification.classList.remove('error');
+                }, 3000);
+            }
+            
+            // Simulate ad skip button
+            const skipAd = document.querySelector('.skip-ad');
+            let skipTime = 5;
+            
+            skipAd.textContent = `Skip Ad in ${skipTime}s <i class="fas fa-forward"></i>`;
+            
+            const adInterval = setInterval(() => {
+                skipTime--;
+                skipAd.textContent = `Skip Ad in ${skipTime}s <i class="fas fa-forward"></i>`;
+                
+                if (skipTime === 0) {
+                    clearInterval(adInterval);
+                    skipAd.textContent = 'Skip Ad <i class="fas fa-forward"></i>';
+                    skipAd.classList.add('pulse');
+                }
+            }, 1000);
+            
+            skipAd.addEventListener('click', function() {
+                if (skipTime === 0) {
+                    showNotification('Ad skipped! Next question loading...');
+                    skipAd.classList.remove('pulse');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
